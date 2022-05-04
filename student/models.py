@@ -16,6 +16,9 @@ class Course(models.Model):
     class Meta:
         db_table = "db_course"
 
+    def __str__(self):
+        return self.title
+
 
 class Student(models.Model):
     SEX_CHOICES = (
@@ -29,16 +32,19 @@ class Student(models.Model):
     birthday = models.DateField()
 
     # 一对多的关系: 在数据库创建一个关联字段：clas_id(在clas字段后缀新增_id)
-    clas = models.ForeignKey(to="Clas", on_delete=models.CASCADE, db_constraint=False)
+    clas = models.ForeignKey(to="Clas", related_name="student_list", on_delete=models.CASCADE, db_constraint=False)
 
     # 多对多的关系: 创建第三张关系表
-    courses = models.ManyToManyField("Course", db_table="db_student2course")
+    courses = models.ManyToManyField("Course", related_name="students", db_table="db_student2course")
 
     # 一对一的关系: 建立关联字段,在数据库中生成关联字段: stu_detail_id
-    stu_detail = models.OneToOneField("StudentDetail", on_delete=models.CASCADE)
+    stu_detail = models.OneToOneField("StudentDetail", related_name="stu", on_delete=models.CASCADE)
 
     class Meta:
         db_table = "db_student"
+
+    def __str__(self):
+        return self.name
 
 
 class StudentDetail(models.Model):
