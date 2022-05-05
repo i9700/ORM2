@@ -1,5 +1,6 @@
 from django.shortcuts import render, HttpResponse
 from .models import Student, StudentDetail, Course, Clas
+from django.db.models import Avg, Count, Max, Min
 
 
 # Create your views here.
@@ -161,5 +162,31 @@ def select2_student(request):
     print(res)
     # 方式1：
     res = Student.objects.filter(stu_detail__tel="110").values("name", "clas__name")  # 不相关联系的表可以用都有关系的那张表作为基表
+    print(res)
+
+    '''
+    分组查询
+    '''
+    res = Student.objects.values("sex").annotate(c=Count("name"))
+    print(res)
+
+    # (1)查询每一个班级的名称以及学生个数
+    res = Clas.objects.values("name").annotate(count=Count("student_list__name"))
+    print(res)
+    # (2)查询每一个学生的姓名，年龄以及选修课程的个数
+    res = Student.objects.values("name", "age").annotate(c=Count("courses__title"))
+    print(res)
+    res = Student.objects.all().annotate(c=Count("courses__title")).values("name", "age", "sex", "c")
+    print(res)
+
+    # (3)查询每一个课程名称以及选秀学生的个数
+    res = Course.objects.all().annotate(c=Count("students__name")).values("title", "c")
+    # res = Course.objects.values("title").annotate(c=Count("students__name"))
+    print(res)
+    # (4)查询选秀课程个数大于1的学生姓名以及选修课程个数
+    res = Student.objects.all().annotate(c=Count("courses__title")).filter(c__gt=1).values("name", "c")
+    print(res)
+    # (5)查询每一个学生的姓名以及选秀课程的个数并按着选修的课程个数从低到高排序, 降序则在排序的字段名称前加-
+    res = Student.objects.all().annotate(c=Count("courses__title")).order_by("-c").values("name", "c")
     print(res)
     return HttpResponse("关联join查询成功！")
